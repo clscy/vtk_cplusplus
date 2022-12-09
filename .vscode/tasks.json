@@ -1,0 +1,34 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceRoot}/build"
+    },
+
+    "tasks": [
+        {
+            "taskName": "cmake",
+            "command": "cmake",
+            "args": ["-G",
+                "Unix Makefiles",
+                "-DCMAKE_BUILD_TYPE=debug",
+                ".."]
+
+        },
+        {
+            "taskName": "make",
+            "command": "make",
+            "args": [],
+            
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+            
+        }
+        
+    ]
+
+  
+}
