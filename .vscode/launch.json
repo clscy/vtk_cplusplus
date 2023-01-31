@@ -5,7 +5,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/KochanekSplineDemo",//此处设置可执行文件名
+            "program": "${workspaceFolder}/build/testVtkAffineWidget",//此处设置可执行文件名
             "args": [],//可以设置调试参数等
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
