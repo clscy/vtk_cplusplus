@@ -1,12 +1,5 @@
-/*===============================
-Author: chenglishuang
-Date； 2023.01.16
-===============================*/
 #include <vtkActor.h>
-// #include <vtkAffineRepresentation2D.h>
 #include "vtkClsRepresentation2D.h"
-// #include "vtkRectangleRepresent2D.h"
-// #include <vtkAffineWidget.h>
 #include "vtkClsAffineWidget.h"
 #include <vtkAppendPolyData.h>
 #include <vtkCommand.h>
@@ -26,7 +19,7 @@ Date； 2023.01.16
 namespace {
     class vtkAffineCallback : public vtkCommand
     {
-      public:
+    public:
         static vtkAffineCallback* New()
         {
             return new vtkAffineCallback;
@@ -41,18 +34,17 @@ namespace {
             this->Transform->Delete();
         }
         vtkActor* Actor;
-        // vtkAffineRepresentation2D* AffineRep;
         vtkClsRepresentation2D* AffineRep;
-        // vtkRectangleRepresent2D* AffineRep;
         vtkTransform* Transform;
     };
-}
-
+} // namespace
 
 int main(int, char*[])
 {
     vtkNew<vtkNamedColors> colors;
 
+    // Create two spheres: a larger one and a smaller one on top of the larger one
+    // to show a reference point while rotating
     vtkNew<vtkSphereSource> sphereSource;
     sphereSource->Update();
 
@@ -61,34 +53,34 @@ int main(int, char*[])
     sphereSource2->SetCenter(0, 0.5, 0);
     sphereSource2->Update();
 
+    // Append the two spheres into one vtkPolyData
     vtkNew<vtkAppendPolyData> append;
     append->AddInputConnection(sphereSource->GetOutputPort());
     append->AddInputConnection(sphereSource2->GetOutputPort());
-    append->Update();
-    
+
+    // Create a plane centered over the larger sphere with 4x4 sub sections
     vtkNew<vtkPlaneSource> planeSource;
     planeSource->SetXResolution(4);
     planeSource->SetYResolution(4);
     planeSource->SetOrigin(-1, -1, 0);
     planeSource->SetPoint1(1, -1, 0);
     planeSource->SetPoint2(-1, 1, 0);
-    planeSource->Update();
 
+    // Create a mapper and actor for the plane: show it as a wireframe
     vtkNew<vtkPolyDataMapper> planeMapper;
     planeMapper->SetInputConnection(planeSource->GetOutputPort());
-    planeMapper->Update();
     vtkNew<vtkActor> planeActor;
     planeActor->SetMapper(planeMapper);
     planeActor->GetProperty()->SetRepresentationToWireframe();
     planeActor->GetProperty()->SetColor(colors->GetColor3d("Red").GetData());
 
+    // Create a mapper and actor for the spheres
     vtkNew<vtkPolyDataMapper> mapper;
     mapper->SetInputConnection(append->GetOutputPort());
-    mapper->Update();
-
     vtkNew<vtkActor> actor;
     actor->SetMapper(mapper);
 
+    // Create a renderer and render window
     vtkNew<vtkRenderer> renderer;
     vtkNew<vtkRenderWindow> renderWindow;
     renderWindow->AddRenderer(renderer);
@@ -96,31 +88,26 @@ int main(int, char*[])
 
     renderer->AddActor(actor);
     renderer->AddActor(planeActor);
-    renderer->SetBackground(colors->GetColor3d("LightSkyBlue").GetData()); //
-    renderer->SetBackground2(colors->GetColor3d("MidnightBlue").GetData()); //
+    renderer->GradientBackgroundOn();
+    renderer->SetBackground(colors->GetColor3d("LightSkyBlue").GetData());
+    renderer->SetBackground2(colors->GetColor3d("MidnightBlue").GetData());
 
+    // Create an interactor
     vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
     renderWindowInteractor->SetRenderWindow(renderWindow);
-    dynamic_cast<vtkInteractorStyleSwitch*>(
-        renderWindowInteractor->GetInteractorStyle())->SetCurrentStyleToTrackballCamera();
+    dynamic_cast<vtkInteractorStyleSwitch*>(renderWindowInteractor->GetInteractorStyle())->SetCurrentStyleToTrackballCamera();
 
-    // vtkNew<vtkAffineWidget> affineWidget;
+    // Create an affine widget to manipulate the actor
+    // the widget currently only has a 2D representation and therefore applies
+    // transforms in the X-Y plane only
     vtkNew<vtkClsAffineWidget> affineWidget;
     affineWidget->SetInteractor(renderWindowInteractor);
-    // affineWidget->CreateDefaultRepresentation();
-    // dynamic_cast<vtkAffineRepresentation2D*>(affineWidget->GetRepresentation())
-    // ->PlaceWidget(actor->GetBounds());
-    // dynamic_cast<vtkClsRepresentation2D*>(affineWidget->GetRepresentation())->PlaceWidget(actor->GetBounds());
-    vtkNew<vtkClsRepresentation2D> clsRep;
-    clsRep->PlaceWidget(actor->GetBounds());
-    affineWidget->SetRepresentation(clsRep);
+    affineWidget->CreateDefaultRepresentation();
+    dynamic_cast<vtkClsRepresentation2D*>(affineWidget->GetRepresentation())->PlaceWidget(actor->GetBounds());
 
     vtkNew<vtkAffineCallback> affineCallback;
     affineCallback->Actor = actor;
-    // affineCallback->AffineRep = dynamic_cast<vtkAffineRepresentation2D*>(
-    //     affineWidget->GetRepresentation());
     affineCallback->AffineRep = dynamic_cast<vtkClsRepresentation2D*>(affineWidget->GetRepresentation());
-    
     affineWidget->AddObserver(vtkCommand::InteractionEvent, affineCallback);
     affineWidget->AddObserver(vtkCommand::EndInteractionEvent, affineCallback);
 
@@ -129,16 +116,17 @@ int main(int, char*[])
     renderWindow->Render();
     affineWidget->On();
 
+    // begin mouse interaction
     renderWindowInteractor->Start();
-    
+
     return EXIT_SUCCESS;
 }
 
-namespace{
-    void vtkAffineCallback::Execute(vtkObject*, unsigned long vtkNotUsed(event),
-    void*)
-    {
-        this->AffineRep->GetTransform(this->Transform);
-        this->Actor->SetUserTransform(this->Transform);
-    }
+namespace {
+void vtkAffineCallback::Execute(vtkObject*, unsigned long vtkNotUsed(event),
+                                void*)
+{
+  this->AffineRep->GetTransform(this->Transform);
+  this->Actor->SetUserTransform(this->Transform);
 }
+} // namespace

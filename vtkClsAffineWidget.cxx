@@ -13,7 +13,7 @@
 
 =========================================================================*/
 #include "vtkClsAffineWidget.h"
-#include "vtkAffineRepresentation2D.h"
+#include "vtkClsRepresentation2D.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
 #include "vtkEvent.h"
@@ -62,7 +62,7 @@ void vtkClsAffineWidget::CreateDefaultRepresentation()
 {
   if (!this->WidgetRep)
   {
-    this->WidgetRep = vtkAffineRepresentation2D::New();
+    this->WidgetRep = vtkClsRepresentation2D::New();
   }
 }
 
